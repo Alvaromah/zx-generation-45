@@ -46,12 +46,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/YOUR_USERNAME/zx-generation.git"
+    "url": "https://github.com/Alvaromah/zx-generation-45.git"
   },
   "bugs": {
-    "url": "https://github.com/YOUR_USERNAME/zx-generation/issues"
+    "url": "https://github.com/Alvaromah/zx-generation-45/issues"
   },
-  "homepage": "https://github.com/YOUR_USERNAME/zx-generation#readme",
+  "homepage": "https://github.com/Alvaromah/zx-generation-45#readme",
   "engines": {
     "node": ">=14.0.0"
   },
