@@ -9,6 +9,18 @@ A high-fidelity **ZX Spectrum 48K emulator** written entirely in JavaScript, fea
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Built with Claude](https://img.shields.io/badge/Built_with-Claude_4.5-5A67D8)
 
+## 📸 Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/screenshot-1.png" width="45%" alt="ZX Spectrum Boot Screen">
+  <img src="docs/screenshots/screenshot-2.png" width="45%" alt="Boxing Game">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/screenshot-3.png" width="45%" alt="West Bank Loading Screen">
+  <img src="docs/screenshots/screenshot-4.png" width="45%" alt="Adventure Game">
+</p>
+
 ## 🎮 Live Demo
 
 **Try it now:** [https://hi-score.dev](https://hi-score.dev)
@@ -293,7 +305,9 @@ Claude Code's advanced reasoning capabilities enabled:
 
 ## 📄 License
 
-MIT License - See LICENSE file for details
+MIT — see the [LICENSE](LICENSE) file for details.
+
+> The original ZX Spectrum ROM (`rom/48k.rom`) is copyright **Sky UK Limited** (acquired from Amstrad plc). Distributed solely for use with emulators under Amstrad’s permission. See `rom/README.md` for the full copyright notice.
 
 ## 🙏 Acknowledgments
 
@@ -306,7 +320,6 @@ MIT License - See LICENSE file for details
 
 - [ZX Spectrum Technical Documentation](http://www.worldofspectrum.org/)
 - [Z80 CPU User Manual](http://www.zilog.com/docs/z80/um0080.pdf)
-- [TZX Format Specification](https://www.worldofspectrum.org/TZXformat.html)
 
 ---
 
