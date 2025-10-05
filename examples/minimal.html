@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZX Spectrum Emulator - Minimal</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #222;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            border: 2px solid #444;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="screen"></canvas>
+
+    <script type="module">
+        import { ZXSpectrum } from '../dist/zxgeneration.esm.js';
+
+        const canvas = document.getElementById('screen');
+        const spectrum = new ZXSpectrum(canvas, {
+            rom: '../rom/48k.rom',
+            autoStart: true,
+            scale: 2
+        });
+    </script>
+</body>
+</html>

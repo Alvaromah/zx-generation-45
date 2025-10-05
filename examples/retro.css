@@ -1,0 +1,65 @@
+/**
+ * ZX Spectrum retro styling
+ */
+
+.rainbow-strip {
+    width: 100%;
+    height: 8px;
+    background: linear-gradient(
+        to right,
+        #ff0000,
+        #ff7f00,
+        #ffff00,
+        #00ff00,
+        #0000ff,
+        #4b0082,
+        #9400d3
+    );
+    margin-bottom: 10px;
+}
+
+h1 {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    text-align: center;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    letter-spacing: 2px;
+}
+
+/* ZX Spectrum color theme */
+:root {
+    --zx-black: #000000;
+    --zx-blue: #0000CD;
+    --zx-red: #CD0000;
+    --zx-magenta: #CD00CD;
+    --zx-green: #00CD00;
+    --zx-cyan: #00CDCD;
+    --zx-yellow: #CDCD00;
+    --zx-white: #CDCDCD;
+}
+
+/* Scanline effect (optional) */
+@keyframes scanline {
+    0% {
+        transform: translateY(-100%);
+    }
+    100% {
+        transform: translateY(100%);
+    }
+}
+
+.screen-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        rgba(0, 0, 0, 0) 50%,
+        rgba(0, 0, 0, 0.05) 50%
+    );
+    background-size: 100% 4px;
+    pointer-events: none;
+    z-index: 1;
+}

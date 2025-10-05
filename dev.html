@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ZX Spectrum Emulator - DEV MODE</title>
+    <link rel="stylesheet" href="examples/retro.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            max-width: 100vw;
+            max-height: 100vh;
+        }
+
+        .screen-container {
+            position: relative;
+            margin: 20px 0;
+        }
+
+        canvas {
+            border: 4px solid #333;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #444;
+            color: #fff;
+            border: 2px solid #666;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #555;
+            border-color: #888;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .status {
+            background: #2a2a2a;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 12px;
+            text-align: center;
+            margin: 10px 0;
+            min-width: 300px;
+        }
+
+        .status-item {
+            margin: 5px 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            button {
+                padding: 8px 16px;
+                font-size: 12px;
+            }
+
+            canvas {
+                border-width: 2px;
+            }
+        }
+
+        @media (orientation: landscape) and (max-width: 896px) {
+            .controls {
+                flex-direction: row;
+            }
+
+            .status {
+                font-size: 10px;
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="rainbow-strip"></div>
+
+        <h1 style="margin: 20px 0;">ZX Spectrum 48K Emulator <span style="color: #ff0; font-size: 0.6em;">[DEV]</span></h1>
+
+        <div class="screen-container">
+            <canvas id="screen"></canvas>
+        </div>
+
+        <div class="controls">
+            <button id="resetBtn">Reset</button>
+            <button id="pauseBtn">Pause</button>
+            <button id="loadBtn">Load File</button>
+            <button id="audioBtn">Audio: ON</button>
+            <button id="fastLoadBtn">Fast Load: OFF</button>
+            <button id="debugBtn">Debug: OFF</button>
+            <button id="dumpTraceBtn" style="display:none;">Dump Trace</button>
+            <button id="fullscreenBtn">Fullscreen</button>
+        </div>
+
+        <input type="file" id="fileInput" class="file-input" accept=".tap,.tzx,.z80">
+
+        <div class="status">
+            <div class="status-item">FPS: <span id="fps">0</span></div>
+            <div class="status-item" id="tapeStatus">Tape: No tape loaded</div>
+        </div>
+    </div>
+
+    <script type="module">
+        // DEVELOPMENT MODE: Import directly from source
+        import { ZXSpectrum } from './src/spectrum/spectrum.js';
+
+        const canvas = document.getElementById('screen');
+        let spectrum = null;
+        let paused = false;
+        let audioEnabled = true;
+        let fastLoad = false;
+        let debugMode = false;
+
+        // Initialize emulator
+        spectrum = new ZXSpectrum(canvas, {
+            rom: './rom/48k.rom',
+            autoStart: true,
+            scale: 'auto',
+            touchKeyboard: 'auto',
+            onReady: () => {
+                console.log('Emulator ready!');
+                updateStatus();
+            },
+            onError: (error) => {
+                alert('Error: ' + error.message);
+            }
+        });
+
+        // Resume audio on first user interaction
+        const resumeAudio = () => {
+            if (spectrum?.sound) {
+                spectrum.sound.resume();
+            }
+        };
+
+        // Button handlers
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            resumeAudio();
+            spectrum.reset();
+            if (!paused) spectrum.start();
+        });
+
+        document.getElementById('pauseBtn').addEventListener('click', (e) => {
+            resumeAudio();
+            if (paused) {
+                spectrum.start();
+                paused = false;
+                e.target.textContent = 'Pause';
+            } else {
+                spectrum.stop();
+                paused = true;
+                e.target.textContent = 'Resume';
+            }
+        });
+
+        document.getElementById('loadBtn').addEventListener('click', () => {
+            resumeAudio();
+            document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('audioBtn').addEventListener('click', (e) => {
+            resumeAudio();
+            audioEnabled = !audioEnabled;
+            spectrum.setMuted(!audioEnabled);
+            e.target.textContent = audioEnabled ? 'Audio: ON' : 'Audio: OFF';
+        });
+
+        document.getElementById('fastLoadBtn').addEventListener('click', (e) => {
+            resumeAudio();
+            fastLoad = !fastLoad;
+            spectrum.setTurboMode(fastLoad);
+            e.target.textContent = fastLoad ? 'Fast Load: ON' : 'Fast Load: OFF';
+            console.log(`Turbo mode ${fastLoad ? 'enabled' : 'disabled'}`);
+        });
+
+        document.getElementById('debugBtn').addEventListener('click', (e) => {
+            resumeAudio();
+            debugMode = !debugMode;
+            spectrum.setDebugMode(debugMode);
+            e.target.textContent = debugMode ? 'Debug: ON' : 'Debug: OFF';
+            document.getElementById('dumpTraceBtn').style.display = debugMode ? 'inline-block' : 'none';
+
+            if (debugMode) {
+                console.log('Debug mode enabled - trace logging active');
+            } else {
+                console.log('Debug mode disabled');
+            }
+        });
+
+        document.getElementById('dumpTraceBtn').addEventListener('click', () => {
+            resumeAudio();
+            const trace = spectrum.getTrace();
+            console.log('\n=== INSTRUCTION TRACE (last 100) ===');
+            console.log(trace);
+
+            const analysis = spectrum.analyzeTrace();
+            console.log('\n=== LOOP ANALYSIS ===');
+            console.log(analysis);
+
+            // Also download as file
+            const blob = new Blob([trace + '\n\n' + JSON.stringify(analysis, null, 2)], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'trace-dump.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        document.getElementById('fullscreenBtn').addEventListener('click', () => {
+            resumeAudio();
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                document.documentElement.requestFullscreen();
+            }
+        });
+
+        // File loading
+        document.getElementById('fileInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const arrayBuffer = await file.arrayBuffer();
+
+            try {
+                if (file.name.endsWith('.z80')) {
+                    spectrum.loadSnapshot(arrayBuffer);
+                    console.log('Snapshot loaded');
+                } else if (file.name.endsWith('.tap') || file.name.endsWith('.tzx')) {
+                    spectrum.loadTape(arrayBuffer);
+
+                    // Auto-type LOAD "" first, then start tape
+                    setTimeout(async () => {
+                        await spectrum.typeKeyword('LOAD', 150);
+                        await spectrum.typeText('""', { delay: 250, enterAtEnd: true });
+
+                        // Start tape playback after LOAD "" is entered
+                        setTimeout(() => {
+                            spectrum.playTape();
+                        }, 200);
+                    }, 500);
+
+                    console.log('Tape loaded');
+                }
+
+                updateStatus();
+            } catch (error) {
+                alert('Error loading file: ' + error.message);
+            }
+
+            e.target.value = '';
+        });
+
+        // Status updates
+        function updateStatus() {
+            const stats = spectrum.getStats();
+            document.getElementById('fps').textContent = stats.fps;
+
+            const tapeStatus = spectrum.getTapeStatus();
+            if (tapeStatus.loaded) {
+                const status = tapeStatus.playing ? 'Playing' : 'Stopped';
+                const state = tapeStatus.state ? ` [${tapeStatus.state}]` : '';
+                document.getElementById('tapeStatus').textContent =
+                    `Tape: ${status} (${tapeStatus.currentBlock + 1}/${tapeStatus.totalBlocks})${state}`;
+            } else {
+                document.getElementById('tapeStatus').textContent = 'Tape: No tape loaded';
+            }
+        }
+
+        setInterval(updateStatus, 1000);
+
+        // Drag & drop support
+        document.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        document.addEventListener('drop', async (e) => {
+            e.preventDefault();
+
+            const file = e.dataTransfer.files[0];
+            if (!file) return;
+
+            const arrayBuffer = await file.arrayBuffer();
+
+            try {
+                if (file.name.endsWith('.z80')) {
+                    spectrum.loadSnapshot(arrayBuffer);
+                } else if (file.name.endsWith('.tap') || file.name.endsWith('.tzx')) {
+                    spectrum.loadTape(arrayBuffer);
+
+                    // Auto-type LOAD "" first, then start tape
+                    setTimeout(async () => {
+                        await spectrum.typeKeyword('LOAD', 150);
+                        await spectrum.typeText('""', { delay: 250, enterAtEnd: true });
+
+                        // Start tape playback after LOAD "" is entered
+                        setTimeout(() => {
+                            spectrum.playTape();
+                        }, 200);
+                    }, 500);
+                }
+
+                updateStatus();
+            } catch (error) {
+                alert('Error loading file: ' + error.message);
+            }
+        });
+
+        // Resume audio on keyboard or canvas interaction
+        document.addEventListener('keydown', resumeAudio, { once: true });
+        canvas.addEventListener('click', resumeAudio, { once: true });
+        canvas.addEventListener('touchstart', resumeAudio, { once: true, passive: true });
+
+        // Handle orientation changes on mobile
+        window.addEventListener('resize', () => {
+            // Adjust display if needed
+        });
+    </script>
+</body>
+</html>
